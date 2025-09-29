@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localhost Load Tester - Tes Beban Aman</title>
+    <style>
+        /* Reset dan Base Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #fff;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            overflow-x: hidden;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 1rem; }
+
+        /* Animasi */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .fade-in { animation: fadeIn 0.8s ease-out; }
+        .pulse { animation: pulse 1.5s infinite; }
+
+        /* Header */
+        header {
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+            padding: 1rem 0; position: fixed; width: 100%; top: 0; z-index: 100;
+            border-bottom: 1px solid #00bfff;
+        }
+        header .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo h1 {
+            font-size: 1.8rem; background: linear-gradient(45deg, #00ff88, #00bfff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        nav ul { display: flex; gap: 1.5rem; list-style: none; }
+        nav a { color: #fff; text-decoration: none; transition: color 0.3s; }
+        nav a:hover { color: #00ff88; }
+
+        /* Hero/Input Section */
+        .hero { text-align: center; padding: 6rem 0 4rem; }
+        .hero h2 { font-size: 2.5rem; margin-bottom: 1rem; background: linear-gradient(45deg, #fff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 1.1rem; color: #ccc; margin-bottom: 2rem; }
+        form { background: rgba(255,255,255,0.05); border: 1px solid #00bfff; border-radius: 15px; padding: 2rem; margin-bottom: 2rem; }
+        input, select, button {
+            width: 100%; padding: 0.75rem; margin: 0.5rem 0; border: none; border-radius: 8px; font-size: 1rem;
+        }
+        input, select { background: rgba(0,0,0,0.5); color: #fff; }
+        button {
+            background: linear-gradient(45deg, #00ff88, #00bfff); color: #000; font-weight: bold; cursor: pointer;
+            transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,255,136,0.3);
+        }
+        button:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,255,136,0.5); }
+        button:disabled { background: #666; cursor: not-allowed; transform: none; }
+
+        /* Results Section */
+        #results { display: none; background: rgba(0,255,136,0.1); border: 1px solid #00ff88; border-radius: 15px; padding: 2rem; }
+        .progress { width: 100%; height: 20px; background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; margin: 1rem 0; }
+        .progress-bar { height: 100%; background: linear-gradient(45deg, #00ff88, #00bfff); width: 0%; transition: width 0.3s; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .stat { text-align: center; padding: 1rem; background: rgba(0,191,255,0.1); border-radius: 8px; }
+        .stat-value { font-size: 2rem; color: #00ff88; font-weight: bold; }
+        .warning { color: #ff6b6b; background: rgba(255,107,107,0.1); padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+
+        /* Footer */
+        footer { background: rgba(0,0,0,0.9); text-align: center; padding: 2rem 0; border-top: 1px solid #00bfff; color: #ccc; }
+
+        /* Responsif */
+        @media (max-width: 768px) { .hero h2 { font-size: 2rem; } nav ul { flex-direction: column; gap: 0.5rem; } }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="logo"><h1>LocalLoad Tester</h1></div>
+            <nav>
+                <ul>
+                    <li><a href="#hero">Beranda</a></li>
+                    <li><a href="#results">Hasil</a></li>
+                    <li><a href="#guide">Panduan</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero/Input -->
+    <section id="hero" class="hero fade-in">
+        <div class="container">
+            <h2>Tes Beban Localhost Anda dengan Aman!</h2>
+            <p>Masukkan URL localhost, pilih jumlah threads (request bersamaan), dan lihat performa app Anda. Hanya untuk edukasi!</p>
+            <form id="testForm">
+                <input type="url" id="url" placeholder="http://localhost:3000" required pattern="http://(localhost|127\.0\.0\.1)(:\d+)?(/.*)?">
+                <select id="threads">
+                    <option value="10">10 Threads (Ringan)</option>
+                    <option value="50">50 Threads (Sedang)</option>
+                    <option value="100">100 Threads (Berat - Hati-hati!)</option>
+                </select>
+                <select id="duration">
+                    <option value="5">5 Detik</option>
+                    <option value="10">10 Detik</option>
+                    <option value="30">30 Detik (Maksimal)</option>
+                </select>
+                <button type="submit" id="startBtn">Mulai Tes</button>
+            </form>
+            <div id="warning" class="warning" style="display: none;">
+                <strong>Peringatan:</strong> Hanya gunakan untuk localhost. Tes ini simulasi beban ringan; matikan jika PC lambat.
+            </div>
+        </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="container fade-in">
+        <h3>Hasil Tes Load</h3>
+        <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <p id="status">Siap untuk tes...</p>
+        <div class="stats" id="stats"></div>
+        <button id="stopBtn" onclick="stopTest()" style="display: none; margin-top: 1rem;">Stop Tes</button>
+    </section>
+
+    <!-- Guide -->
+    <section id="guide" class="container fade-in">
+        <div style="background: rgba(255,255,255,0.05); border: 1px solid #00bfff; border-radius: 15px; padding: 2rem;">
+            <h3>Panduan Penggunaan</h3>
+            <ul style="list-style: none; color: #ccc;">
+                <li>• Jalankan server localhost Anda (misal: Node.js, Python Flask di port 3000).</li>
+                <li>• Masukkan URL lengkap, e.g., http://localhost:3000/api/test.</li>
+                <li>• Pilih threads: Mulai dari 10 untuk tes awal.</li>
+                <li>• Klik Start: Tool akan kirim request GET concurrent dan hitung waktu response.</li>
+                <li>• Lihat hasil: Rata-rata waktu, sukses rate, dan error (jika ada).</li>
+                <li>• Tips: Jika error CORS, tambah header di server Anda untuk allow localhost.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 LocalLoad Tester. Edukasi load testing etis. Gunakan bertanggung jawab!</p>
+        </div>
+    </footer>
+
+    <script>
+        let testInterval, totalRequests = 0, successful = 0, errors = 0, startTime, responses = [];
+        const maxThreads = 100; // Batas aman
+
+        document.getElementById('testForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('url').value;
+            const threads = parseInt(document.getElementById('threads').value);
+            const duration = parseInt(document.getElementById('duration').value) * 1000;
+
+            if (!url.startsWith('http://localhost') && !url.startsWith('http://127.0.0.1')) {
+                alert('Hanya localhost yang diizinkan! Gunakan http://localhost:port');
+                return;
+            }
+
+            document.getElementById('warning').style.display = 'block';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').style.display = 'inline-block';
+            totalRequests = 0; successful = 0; errors = 0; responses = []; startTime = Date.now();
+
+            // Progress bar
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += (100 / (duration / 1000));
+                document.getElementById('progressBar').style.width = Math.min(progress, 100) + '%';
+                if (progress >= 100) clearInterval(progressInterval);
+            }, 100);
+
+            // Simulasi threads: Kirim request setiap interval
+            testInterval = setInterval(async () => {
+                if (Date.now() - startTime > duration) {
+                    clearInterval(testInterval);
+                    showResults();
+                    return;
+                }
+                for (let i = 0; i < threads; i++) {
+                    if (totalRequests >= threads * 10) continue; // Batas total request aman
+                    totalRequests++;
+                    try {
+                        const t0 = performance.now();
+                        const res = await fetch(url, { mode: 'no-cors' }); // No-cors untuk localhost sederhana
+                        const t1 = performance.now();
+                        responses.push(t1 - t0);
+                        successful++;
+                        document.getElementById('status').textContent = `Request ${totalRequests}: Sukses (${(t1 - t0).toFixed(2)}ms)`;
+                    } catch (err) {
+                        errors++;
+                        document.getElementById('status').textContent = `Request ${totalRequests}: Error (${err.message})`;
+                    }
+                }
+            }, 100); // Interval 100ms untuk simulasi concurrent
+        });
+
+        function stopTest() {
+            clearInterval(testInterval);
+            showResults();
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').style.display = 'none';
+        }
+
+        function showResults() {
+            const avgTime = responses.length ? (responses.reduce((a, b) => a + b, 0) / responses.length).toFixed(2) : 0;
+            const successRate = totalRequests ? ((successful / totalRequests) * 100).toFixed(1) : 0;
+            document.getElementById('status').textContent = 'Tes Selesai!';
+            document.getElementById('stats').innerHTML = `
+                <div class="stat">
+                    <div class="stat-value">${totalRequests}</div>
+                    <div>Total Requests</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${avgTime}ms</div>
+                    <div>Rata-rata Waktu</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${successRate}%</div>
+                    <div>Success Rate</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${errors}</div>
+                    <div>Errors</div>
+                </div>
+            `;
+        }
+
+        // Smooth scroll untuk nav
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault(); document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+  </html>
