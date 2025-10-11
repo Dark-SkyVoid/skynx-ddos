@@ -1,0 +1,27 @@
+{
+  "name": "advanced-penetration-test",
+  "version": "2.0.0",
+  "description": "Advanced Penetration Testing Toolkit for Self-Infrastructure",
+  "main": "advanced-bot.js",
+  "scripts": {
+    "start": "node advanced-bot.js",
+    "test": "node advanced-engine.js --safe",
+    "stress": "node advanced-engine.js --advanced"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.64.0",
+    "axios": "^1.6.0",
+    "https-proxy-agent": "^7.0.0",
+    "socks-proxy-agent": "^7.0.0",
+    "user-agents": "^1.0.11",
+    "cli-progress": "^3.12.0",
+    "chalk": "^4.1.2",
+    "uuid": "^9.0.1",
+    "form-data": "^4.0.0",
+    "ws": "^8.14.2",
+    "node-fetch": "^3.3.2"
+  },
+  "keywords": ["pentesting", "security", "load-testing"],
+  "author": "Security Researcher",
+  "license": "MIT"
+}
